@@ -1,0 +1,64 @@
+on:
+  workflow_call:
+    inputs:
+      git_user_email:
+        required: true
+        type: string
+      git_user_name:
+        required: true
+        type: string
+      target_repo:
+        required: true
+        type: string
+        description: The repository to perform the customizations
+      target_branch:
+        required: false
+        type: string
+        description: The target branch to perform the customizations
+        default: master
+      target_repo_token:
+        required: true
+        type: string
+        description: A Github personal access token for the target repo
+      image:
+        required: true
+        type: string
+        description: The container image to kustomize
+
+jobs:
+  Kustomize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          repository: ${{inputes.target_repo}}
+          token: ${{secrets.target_repo_token}}
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v1
+        with:
+          kustomize-version: "3.1.0"
+      - name: Configure git
+        run: | 
+          git config --global user.email "${{inputs.git_user_email}}"
+          git config --global user.name "${{inputs.git_user_name}}"
+          git checkout master
+      - name: Kustomize
+        run: |
+          target_dirs=$(find ./ \
+            -type f \
+            -name kustomization.yml -o -name kustomization.yaml \
+            -exec grep -q "${{inputs.image}}" {} \; \
+            -print | xargs dirname)
+
+          for dn in ${target_dirs}; do
+              pushd "${dn}"
+              kustomize edit set image ${image}
+              popd
+              echo
+          done
+      - name: Commit and Push
+        run: |
+          git add .
+          git commit -m "Set ${{inputs.image}} image tag to '${{inputs.image}}:${GITHUB_SHA}'"
+          git push origin master
