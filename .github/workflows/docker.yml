@@ -19,13 +19,13 @@ jobs:
       - name: Set outputs
         id: sha
         run: |
+          export HASH=$(git rev-parse --short HEAD);
           export VERSION=$(git describe --tags);
           FIRST=$(git describe --tags|sed 's/^\(.\).*/\1/');
           if [ "$FIRST" == "v" ]; then 
             VERSION=$(git describe --tags|sed 's/^.\{1\}//');
           fi
-          
-          echo "::set-output name=sha::$(git rev-parse --short HEAD)"
+          echo "::set-output name=sha::$HASH"
           echo "::set-output name=tag::$VERSION"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -45,7 +45,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{github.repository}}:${{github.sha}}
-            ${{ (inputs.latest == true && 'ghcr.io/github.repository:latest') || '' }}
+            ${{ (inputs.latest == true && format('ghcr.io/{0}:latest', github.repository)) || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:latest
           cache-to: type=inline
           build-args: |
