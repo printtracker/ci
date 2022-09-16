@@ -25,6 +25,8 @@ jobs:
           if [ "$FIRST" == "v" ]; then 
             VERSION=$(git describe --tags|sed 's/^.\{1\}//');
           fi
+          echo $HASH
+          echo $VERSION
           echo "::set-output name=sha::$HASH"
           echo "::set-output name=tag::$VERSION"
       - name: Set up QEMU
@@ -44,9 +46,10 @@ jobs:
           file: ${{inputs.dockerfile}}
           push: true
           tags: |
-            ghcr.io/${{github.repository}}:${{github.sha}}
+            ghcr.io/${{github.repository}}:${{steps.sha.outputs.tag}}
+            ghcr.io/${{github.repository}}:${{github.ref_name}}
             ${{ (inputs.latest == true && format('ghcr.io/{0}:latest', github.repository)) || '' }}
-          cache-from: type=registry,ref=ghcr.io/${{github.repository}}:latest
+          cache-from: type=registry,ref=ghcr.io/${{github.repository}}:${{github.ref_name}}
           cache-to: type=inline
           build-args: |
             VERSION=${{steps.sha.outputs.tag}}
