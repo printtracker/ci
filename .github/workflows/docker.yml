@@ -56,10 +56,10 @@ jobs:
           # the branch name (for caching) and the latest if the inputs 
           # specify that a 'latest' tag should be created. Only create
           # a branch tag if the ref name of the branch does not contain
-          # the tag name.
+          # the tag name. 
           tags: |
             ghcr.io/${{github.repository}}:${{steps.sha.outputs.tag}}
-            ${{ (contains(github.ref_name, steps.sha.outputs.tag) && '') || format('ghcr.io/{0}:{1}', github.repository, github.ref_name) }}
+            ghcr.io/${{github.repository}}:${{github.ref_name}}
             ${{ (inputs.latest == true && format('ghcr.io/{0}:latest', github.repository)) || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:${{github.ref_name}}
           cache-to: type=inline
