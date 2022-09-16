@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{github.repository}}:${{github.sha}}
-            ${{ inputs.latest == true && 'ghcr.io/${{github.repository}}:latest') || '' }}
+            ${{ (inputs.latest == true && 'ghcr.io/${{github.repository}}:latest') || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:latest
           cache-to: type=inline
           build-args: |
