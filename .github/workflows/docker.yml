@@ -34,3 +34,5 @@ jobs:
           build-args: |
             VERSION=${{steps.sha.outputs.tag}}
             HASH=${{steps.sha.outputs.sha}}
+          secrets: |
+            GIT_AUTH_TOKEN=${{github.token}}
