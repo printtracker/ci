@@ -32,8 +32,9 @@ jobs:
           # otherwise set the version to the git tag
           if [ "$VERSION" == "" ]; then 
             echo "::set-output name=tag::$HASH"
+          else
+            echo "::set-output name=tag::$VERSION"
           fi
-          echo "::set-output name=tag::$VERSION"
           echo "::set-output name=sha::$HASH"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
