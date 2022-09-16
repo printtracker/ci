@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set outputs
+      - name: Set tag and hash
         id: sha
         run: |
           export HASH=$(git rev-parse --short HEAD);
@@ -54,10 +54,12 @@ jobs:
           push: true
           # Create tagged Docker images for the actual commit tag, then 
           # the branch name (for caching) and the latest if the inputs 
-          # specify that a 'latest' tag should be created.
+          # specify that a 'latest' tag should be created. Only create
+          # a branch tag if the ref name of the branch does not contain
+          # the tag name.
           tags: |
             ghcr.io/${{github.repository}}:${{steps.sha.outputs.tag}}
-            ghcr.io/${{github.repository}}:${{github.ref_name}}
+            ${{ (contains(github.ref_name, steps.sha.outputs.tag) && '') || format('ghcr.io/{0}:{1}', github.repository, github.ref_name) }}
             ${{ (inputs.latest == true && format('ghcr.io/{0}:latest', github.repository)) || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:${{github.ref_name}}
           cache-to: type=inline
