@@ -19,8 +19,14 @@ jobs:
       - name: Set outputs
         id: sha
         run: |
+          export VERSION=$(git describe --tags);
+          FIRST=$(git describe --tags|sed 's/^\(.\).*/\1/');
+          if [ "$FIRST" == "v" ]; then 
+            VERSION=$(git describe --tags|sed 's/^.\{1\}//');
+          fi
+          
           echo "::set-output name=sha::$(git rev-parse --short HEAD)"
-          echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
+          echo "::set-output name=tag::$VERSION"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
