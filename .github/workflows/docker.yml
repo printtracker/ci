@@ -6,6 +6,9 @@ on:
         default: .
       dockerfile:
         type: string
+      latest:
+        type: boolean
+        default: true
 
 jobs:
   Containerize:
@@ -34,11 +37,11 @@ jobs:
           context: ${{inputs.context}}
           file: ${{inputs.dockerfile}}
           push: true
-          tags: ghcr.io/${{github.repository}}:${{github.sha}}
+          tags: |
+            ghcr.io/${{github.repository}}:${{github.sha}}
+            ${{ inputs.latest == true && 'ghcr.io/${{github.repository}}:latest') || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:latest
           cache-to: type=inline
           build-args: |
             VERSION=${{steps.sha.outputs.tag}}
             HASH=${{steps.sha.outputs.sha}}
-          secrets: |
-            GIT_AUTH_TOKEN=${{github.token}}
