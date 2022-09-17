@@ -36,6 +36,7 @@ jobs:
             echo "::set-output name=tag::$VERSION"
           fi
           echo "::set-output name=sha::$HASH"
+          echo "::set-output name=ref::$(echo '${{github.ref_name}}' | sed 's/\//_/')"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -59,7 +60,7 @@ jobs:
           # the tag name. 
           tags: |
             ghcr.io/${{github.repository}}:${{steps.sha.outputs.tag}}
-            ghcr.io/${{github.repository}}:${{github.ref_name}}
+            ghcr.io/${{github.repository}}:${{steps.sha.outputs.ref}}
             ${{ (inputs.latest == true && format('ghcr.io/{0}:latest', github.repository)) || '' }}
           cache-from: type=registry,ref=ghcr.io/${{github.repository}}:${{github.ref_name}}
           cache-to: type=inline
