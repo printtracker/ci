@@ -12,10 +12,16 @@ on:
       image:
         type: string
         default: ${{github.repository}}
+    output:
+      image-tag:
+        type: string
+        value: ${{jobs.Containerize.outputs.image-tag}}
 
 jobs:
   Containerize:
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{steps.sha.outputs.tag}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
