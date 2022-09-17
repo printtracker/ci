@@ -12,7 +12,7 @@ on:
       image:
         type: string
         default: ${{github.repository}}
-    output:
+    outputs:
       image-tag:
         type: string
         value: ${{jobs.Containerize.outputs.image-tag}}
