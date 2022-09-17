@@ -22,6 +22,10 @@ on:
         required: true
         type: string
         description: The container image to kustomize
+      image-tag:
+        required: true
+        type: string
+        description: The new container image tag
 
 jobs:
   Kustomize:
@@ -50,12 +54,12 @@ jobs:
 
           for dn in ${target_dirs}; do
               pushd "${dn}"
-              kustomize edit set image ${image}
+              kustomize edit set image ${{image}}:${{image-tag}}
               popd
               echo
           done
       - name: Commit and Push
         run: |
           git add .
-          git commit -m "Set ${{inputs.image}} image tag to '${{inputs.image}}:${GITHUB_SHA}'"
+          git commit -m "Set ${{inputs.image}} image tag to '${{inputs.image}}:${{image-tag}}'"
           git push origin master
