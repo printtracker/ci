@@ -8,20 +8,17 @@ on:
       #   required: true
       #   type: string
       target-repo:
-        required: true
         type: string
         description: The repository to perform the customizations
         default: https://github.com/printtracker/ci-infra
       target-branch:
-        required: false
         type: string
         description: The target branch to perform the customizations
         default: master
       target-repo-token:
-        required: true
         type: string
         description: A Github personal access token for the target repo
-        default: ${{github.token}}
+        default: ${{secrets.BOT_TOKEN}}
       image:
         required: true
         type: string
