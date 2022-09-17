@@ -14,7 +14,7 @@ on:
         default: ${{github.repository}}
     outputs:
       image-tag:
-        type: string
+        description: The tag of the image that was created
         value: ${{jobs.Containerize.outputs.image-tag}}
 
 jobs:
