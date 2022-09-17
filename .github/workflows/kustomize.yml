@@ -1,25 +1,27 @@
 on:
   workflow_call:
     inputs:
-      git_user_email:
-        required: true
-        type: string
-      git_user_name:
-        required: true
-        type: string
-      target_repo:
+      # git_user_email:
+      #   required: true
+      #   type: string
+      # git_user_name:
+      #   required: true
+      #   type: string
+      target-repo:
         required: true
         type: string
         description: The repository to perform the customizations
-      target_branch:
+        default: https://github.com/printtracker/ci-infra
+      target-branch:
         required: false
         type: string
         description: The target branch to perform the customizations
         default: master
-      target_repo_token:
+      target-repo-token:
         required: true
         type: string
         description: A Github personal access token for the target repo
+        default: ${{github.token}}
       image:
         required: true
         type: string
@@ -32,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
         with:
-          repository: ${{inputes.target_repo}}
+          repository: ${{inputs.target_repo}}
           token: ${{secrets.target_repo_token}}
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -40,8 +42,8 @@ jobs:
           kustomize-version: "3.1.0"
       - name: Configure git
         run: | 
-          git config --global user.email "${{inputs.git_user_email}}"
-          git config --global user.name "${{inputs.git_user_name}}"
+          git config --global user.email "${{github.actor}}"
+          git config --global user.name "${{github.actor}}"
           git checkout master
       - name: Kustomize
         run: |
