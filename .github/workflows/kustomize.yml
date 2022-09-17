@@ -40,7 +40,6 @@ jobs:
         run: | 
           git config --global user.email "bot@ptkr.io"
           git config --global user.name "Print Tracker Bot"
-          git checkout origin master
       - name: Kustomize
         run: |
           target_dirs=$(find ./ \
