@@ -44,7 +44,7 @@ jobs:
           git config --global user.name "Print Tracker Bot"
       - name: Kustomize
         run: |
-          target_dirs=$(find $(jq -r 'split(",") | map("kube/deploy/" + .) | join(" ")' -Rc <(echo '${{inputs.deploy-envs}}')) \
+          target_dirs=$(find $(jq -r 'split(",") | map("./kube/deploy/" + .) | join(" ")' -Rc <(echo '${{inputs.deploy-envs}}')) \
             -type f \
             -name kustomization.yml -o -name kustomization.yaml \
             -exec grep -q "${{inputs.image}}" {} \; \
