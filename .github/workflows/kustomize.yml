@@ -30,20 +30,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
         with:
           repository: ${{inputs.target_repo}}
           token: ${{inputs.target-repo-token || secrets.BOT_TOKEN}}
+          path: infra
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
         with:
           kustomize-version: "3.1.0"
       - name: Configure git
-        run: | 
+        run: |
+          cd infra
           git config --global user.email "bot@ptkr.io"
           git config --global user.name "Print Tracker Bot"
       - name: Kustomize
         run: |
+          cd infra
           target_dirs=$(find $(jq -r 'split(",") | map("./kube/deploy/" + .) | join(" ")' -Rc <(echo '${{inputs.deploy-envs}}')) \
             -type f \
             -name kustomization.yml -o -name kustomization.yaml \
@@ -58,6 +61,7 @@ jobs:
           done
       - name: Commit and Push
         run: |
+          cd infra
           git add .
           git commit -m "Set ${{inputs.image}} image tag to '${{inputs.image}}:${{inputs.image-tag}}'"
           git push origin master
