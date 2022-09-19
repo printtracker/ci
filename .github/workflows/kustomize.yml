@@ -64,6 +64,6 @@ jobs:
       - name: Commit and Push
         run: |
           cd infra
-          git add .
-          git commit -m "Set ${{inputs.image}} image tag to '${{inputs.image}}:${{inputs.image-tag}}'"
+          set -e
+          git commit -am "Set ${{inputs.image}} image tag to '${{inputs.image}}:${{inputs.image-tag}}'"
           git push origin master
