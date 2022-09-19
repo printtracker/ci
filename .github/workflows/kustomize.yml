@@ -34,8 +34,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          repository: ${{inputs.target_repo}}
-          token: ${{inputs.target-repo-token || secrets.BOT_TOKEN}}
+          repository: printtracker/ci-infra
+          token: ${{secrets.BOT_TOKEN}}
           path: infra
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
