@@ -22,8 +22,8 @@ on:
         description: The new container image tag
       deploy-envs:
         required: true
-        type: array
-        description: Which environments should be deployed
+        type: string
+        description: A comma-separated list of environments should be deployed, for example "dev", or "dev,prod", or "prod"
 
 jobs:
   Kustomize:
@@ -44,7 +44,7 @@ jobs:
           git config --global user.name "Print Tracker Bot"
       - name: Kustomize
         run: |
-          target_dirs=$(find ${{ join(inputs.deploy-envs, ' ') }} \
+          target_dirs=$(find $(jq 'split(",") | map("kube/deploy/" + .) | join(" ")' -Rc <(echo '${{inputs.deploy-envs}}')) \
             -type f \
             -name kustomization.yml -o -name kustomization.yaml \
             -exec grep -q "${{inputs.image}}" {} \; \
