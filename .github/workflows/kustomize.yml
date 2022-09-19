@@ -1,12 +1,6 @@
 on:
   workflow_call:
     inputs:
-      # git_user_email:
-      #   required: true
-      #   type: string
-      # git_user_name:
-      #   required: true
-      #   type: string
       target-repo:
         type: string
         description: The repository to perform the customizations
@@ -26,6 +20,10 @@ on:
         required: true
         type: string
         description: The new container image tag
+      deploy-envs:
+        required: true
+        type: array
+        description: Which environments should be deployed
 
 jobs:
   Kustomize:
@@ -46,7 +44,7 @@ jobs:
           git config --global user.name "Print Tracker Bot"
       - name: Kustomize
         run: |
-          target_dirs=$(find ./ \
+          target_dirs=$(find ${{ join(inputs.deploy-envs, ' ') }} \
             -type f \
             -name kustomization.yml -o -name kustomization.yaml \
             -exec grep -q "${{inputs.image}}" {} \; \
