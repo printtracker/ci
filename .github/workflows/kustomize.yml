@@ -4,7 +4,7 @@ on:
       target-repo:
         type: string
         description: The repository to perform the customizations
-        default: printtracker/ci-infra
+        default: "printtracker/ci-infra"
       target-branch:
         type: string
         description: The target branch to perform the customizations
@@ -34,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          repository: printtracker/ci-infra
+          repository: ${{inputs.target-repo}}
           token: ${{secrets.BOT_TOKEN}}
           path: infra
       - name: Setup Kustomize
