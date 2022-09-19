@@ -4,7 +4,7 @@ on:
       target-repo:
         type: string
         description: The repository to perform the customizations
-        default: https://github.com/printtracker/ci-infra
+        default: printtracker/ci-infra
       target-branch:
         type: string
         description: The target branch to perform the customizations
