@@ -2,8 +2,14 @@ on:
   workflow_call:
     outputs:
       tag:
-        description: The tag of the image that was created
+        description: The git tag
         value: ${{jobs.Version.outputs.tag}}
+      sha:
+        description: The git sha (short version)
+        value: ${{jobs.Version.outputs.sha}}
+      ref:
+        description: The git ref
+        value: ${{jobs.Version.outputs.ref}}
 
 jobs:
   Version:
