@@ -13,16 +13,19 @@ on:
         type: string
         default: printtracker-webadmin/${{github.repository}}
       use-gar:
-        description: Whether to upload Docker images to Google Container Registry
+        description: Whether to upload Docker images to Google Artifact Registry
         type: boolean
         default: true
-      gar:
+      registry:
         type: string
         default: us-west1-docker.pkg.dev
     outputs:
       image-tag:
         description: The tag of the image that was created
         value: ${{jobs.version.outputs.tag}}
+      image:
+        description: The full image (including tag) that was created
+        value: ${{jobs.containerize.outputs.image}}
 
 jobs:
   version:
@@ -33,6 +36,8 @@ jobs:
     runs-on: [self-hosted, docker]
     name: Containerize
     needs: version
+    outputs:
+      image: ${{ steps.image.outputs.image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -51,13 +56,13 @@ jobs:
         uses: docker/login-action@v2
         if: ${{ inputs.use-gar }}
         with:
-          registry: ${{ inputs.gar }}
+          registry: ${{ inputs.registry }}
           username: _json_key
           password: ${{ secrets.GCP_CREDENTIALS }}
       - name: Get registry name
         id: registry
         run: |
-          echo "::set-output name=registry::${{ (inputs.use-gar && inputs.gar) || 'ghcr.io' }}"
+          echo "::set-output name=registry::${{ (inputs.use-gar && inputs.registry) || 'ghcr.io' }}"
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -78,3 +83,6 @@ jobs:
           build-args: |
             VERSION=${{needs.version.outputs.tag}}
             HASH=${{needs.version.outputs.sha}}
+      - name: Output image
+        id: image
+        run: echo "::set-output name=image::${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.tag}}"
