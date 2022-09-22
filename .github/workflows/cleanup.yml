@@ -13,6 +13,7 @@ jobs:
   cleanup-artifacts:
     name: "Cleanup Artifacts"
     runs-on: self-hosted
+    if: ${{ inputs.cleanup-artifacts }}
     steps:
       - run: |
           gh api -H "Accept: application/json" /repos/${{ github.repository }}/actions/artifacts \
