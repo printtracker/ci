@@ -23,7 +23,8 @@ on:
 
 jobs:
   Containerize:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       image-tag: ${{steps.sha.outputs.tag}}
     steps:
