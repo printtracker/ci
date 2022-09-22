@@ -26,8 +26,8 @@ jobs:
     name: Version
     uses: printtracker/ci/.github/workflows/version.yml@master
   containerize:
-    runs-on: ubuntu-latest
-    # runs-on: self-hosted
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: Containerize
     needs: version
     steps:
