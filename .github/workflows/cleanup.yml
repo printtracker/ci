@@ -1,0 +1,20 @@
+on:
+  workflow_call:
+    inputs:
+      cleanup-artifacts:
+        type: boolean
+        default: false
+        description: Removes any artifacts generated during this workflow
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  cleanup-artifacts:
+    name: "Cleanup Artifacts"
+    runs-on: self-hosted
+    steps:
+      - run: |
+          gh api -H "Accept: application/json" /repos/${{ github.repository }}/actions/artifacts \
+            | jq --raw-output '.artifacts[] | select(.workflow_run.id == ${{ github.run_id }}) | .id' \
+            | xargs -I {} -n1 gh api -i --method DELETE -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/actions/artifacts/{}
