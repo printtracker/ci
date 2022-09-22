@@ -13,7 +13,8 @@ on:
 
 jobs:
   Version:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       tag: ${{steps.git.outputs.tag}}
       exact-tag: ${{steps.git.outputs.exact-tag}}
