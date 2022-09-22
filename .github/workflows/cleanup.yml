@@ -11,7 +11,7 @@ env:
 
 jobs:
   cleanup-artifacts:
-    name: "Cleanup Artifacts"
+    name: Artifacts
     runs-on: self-hosted
     if: ${{ inputs.cleanup-artifacts }}
     steps:
