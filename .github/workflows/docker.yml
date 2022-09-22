@@ -44,6 +44,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
+      - run: echo "${{toJSON(secrets)}}"
+      - run: echo "${{toJSON(secrets.GCP_CREDENTIALS)}}"
       - name: Login to GCR
         uses: docker/login-action@v2
         if: ${{ inputs.use-gcr }}
