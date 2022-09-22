@@ -11,7 +11,7 @@ on:
         default: true
       image:
         type: string
-        default: /printtracker-webadmin/${{github.repository}}
+        default: printtracker-webadmin/${{github.repository}}
       use-gar:
         description: Whether to upload Docker images to Google Container Registry
         type: boolean
