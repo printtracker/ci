@@ -29,6 +29,7 @@ jobs:
   Kustomize:
     # runs-on: ubuntu-latest
     runs-on: self-hosted
+    concurrency: git-checkout-${{inputs.target-repo}}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
