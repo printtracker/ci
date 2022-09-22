@@ -19,41 +19,20 @@ on:
     outputs:
       image-tag:
         description: The tag of the image that was created
-        value: ${{jobs.Containerize.outputs.image-tag}}
+        value: ${{jobs.version.outputs.tag}}
 
 jobs:
-  Containerize:
+  version:
+    name: Version
+    uses: printtracker/ci/.github/workflows/version.yml@master
+  containerize:
     # runs-on: ubuntu-latest
+    name: Containerize
     runs-on: self-hosted
-    outputs:
-      image-tag: ${{steps.sha.outputs.tag}}
+    needs: version
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set tag and hash
-        id: sha
-        run: |
-          export HASH=$(git rev-parse --short HEAD);
-          export VERSION=$(git describe --tags);
-          FIRST=$(git describe --tags|sed 's/^\(.\).*/\1/');
-          if [ "$FIRST" == "v" ]; then 
-            VERSION=$(git describe --tags|sed 's/^.\{1\}//');
-          fi
-          echo $HASH
-          echo $VERSION
-
-          # If the version is empty, then set the version to the hash
-          # otherwise set the version to the git tag
-          if [ "$VERSION" == "" ]; then 
-            echo "::set-output name=tag::$HASH"
-          else
-            echo "::set-output name=tag::$VERSION"
-          fi
-          echo "::set-output name=sha::$HASH"
-
-          # Reformat the ref name so that slashes are replaced with underscores.
-          # This is required if we want to use the ref name as a Docker tag
-          echo "::set-output name=ref::$(echo '${{github.head_ref || github.ref_name}}' | sed 's/\//_/')"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -88,11 +67,11 @@ jobs:
           # a branch tag if the ref name of the branch does not contain
           # the tag name. 
           tags: |
-            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.tag}}
-            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.ref}}
+            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.tag}}
+            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.ref}}
             ${{(inputs.latest == true && format('{0}/{1}:latest', steps.registry.outputs.registry, inputs.image)) || '' }}
-          cache-from: type=registry,ref=${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.ref}}
+          cache-from: type=registry,ref=${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.ref}}
           cache-to: type=inline
           build-args: |
-            VERSION=${{steps.sha.outputs.tag}}
-            HASH=${{steps.sha.outputs.sha}}
+            VERSION=${{needs.version.outputs.tag}}
+            HASH=${{needs.version.outputs.sha}}
