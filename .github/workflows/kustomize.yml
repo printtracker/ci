@@ -13,13 +13,14 @@ on:
         type: string
         description: A Github personal access token for the target repo
       image:
-        required: true
         type: string
         description: The container image to kustomize
       image-tag:
-        required: true
         type: string
         description: The new container image tag
+      tagged-image:
+        type: string
+        description: The new image with a tag that should be customize
       deploy-envs:
         required: true
         type: string
@@ -39,6 +40,18 @@ jobs:
           repository: ${{inputs.target-repo}}
           token: ${{secrets.BOT_TOKEN}}
           path: infra
+      - name: Variables
+        id: vars
+        if: ${{ inputs.tagged-image != "" }}
+        run: |
+          echo "::set-output name=image::$(echo '${{ inputs.tagged-image |  | cut -d ':' -f1 }}')"
+          echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image |  | cut -d ':' -f2 }}')"
+      - name: Variables
+        id: vars
+        if: ${{ inputs.tagged-image == "" }}
+        run: |
+          echo "::set-output name=image::${{inputs.image}}"
+          echo "::set-output name=image-tag::${{inputs.image-tag}}""
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
         with:
@@ -54,12 +67,12 @@ jobs:
           target_dirs=$(find $(jq -r 'split(",") | map("./kube/deploy/" + .) | join(" ")' -Rc <(echo '${{inputs.deploy-envs}}')) \
             -type f \
             -name kustomization.yml -o -name kustomization.yaml \
-            -exec grep -q "${{inputs.image}}" {} \; \
+            -exec grep -q "${{steps.vars.outputs.image}}" {} \; \
             -print | xargs dirname)
 
           for dn in ${target_dirs}; do
               pushd "${dn}"
-              kustomize edit set image ${{inputs.image}}:${{inputs.image-tag}}
+              kustomize edit set image ${{steps.vars.outputs.image}}:${{steps.vars.outputs.image-tag}}
               popd
               echo
           done
@@ -67,5 +80,5 @@ jobs:
         run: |
           cd infra
           set -e
-          git commit -am "Set ${{inputs.image}} image tag to '${{inputs.image}}:${{inputs.image-tag}}'"
+          git commit -am "Set ${{steps.vars.outputs.image}} image tag to '${{steps.vars.outputs.image}}:${{steps.vars.outputs.image-tag}}'"
           git push origin master
