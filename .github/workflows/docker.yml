@@ -30,8 +30,6 @@ jobs:
     name: Containerize
     runs-on: self-hosted
     needs: version
-    permissions:
-      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
