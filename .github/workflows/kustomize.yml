@@ -42,13 +42,13 @@ jobs:
           path: infra
       - name: Variables
         id: vars
-        if: ${{ inputs.tagged-image != "" }}
+        if: ${{ inputs.tagged-image != '' }}
         run: |
           echo "::set-output name=image::$(echo '${{ inputs.tagged-image |  | cut -d ':' -f1 }}')"
           echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image |  | cut -d ':' -f2 }}')"
       - name: Variables
         id: vars
-        if: ${{ inputs.tagged-image == "" }}
+        if: ${{ inputs.tagged-image == '' }}
         run: |
           echo "::set-output name=image::${{inputs.image}}"
           echo "::set-output name=image-tag::${{inputs.image-tag}}""
