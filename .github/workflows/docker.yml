@@ -87,10 +87,10 @@ jobs:
           # a branch tag if the ref name of the branch does not contain
           # the tag name. 
           tags: |
-            ${{ steps.registry.outputs.registry }}/${{inputs.image}}:${{steps.sha.outputs.tag}}
-            ${{ steps.registry.outputs.registry }}/${{inputs.image}}:${{steps.sha.outputs.ref}}
-            ${{ (inputs.latest == true && format('${{ steps.registry.outputs.registry }}/{0}:latest', inputs.image)) || '' }}
-          cache-from: type=registry,ref=${{ steps.registry.outputs.registry }}/${{inputs.image}}:${{steps.sha.outputs.ref}}
+            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.tag}}
+            ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.ref}}
+            ${{(inputs.latest == true && format('{0}/{1}:latest', steps.registry.outputs.registry, inputs.image)) || '' }}
+          cache-from: type=registry,ref=${{steps.registry.outputs.registry}}/${{inputs.image}}:${{steps.sha.outputs.ref}}
           cache-to: type=inline
           build-args: |
             VERSION=${{steps.sha.outputs.tag}}
