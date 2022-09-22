@@ -43,12 +43,12 @@ jobs:
       - name: Variables
         id: vars
         run: |
-          echo "::set-output name=image::${{inputs.image}}"
-          echo "::set-output name=image-tag::${{inputs.image-tag}}""
-
           if [ "${{inputs.image}}" == "" ]; then 
             echo "::set-output name=image::$(echo '${{ inputs.tagged-image}}' | cut -d ':' -f1)"
             echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)"
+          else
+            echo "::set-output name=image::${{inputs.image}}"
+            echo "::set-output name=image-tag::${{inputs.image-tag}}""
           fi
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
