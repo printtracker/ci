@@ -42,16 +42,14 @@ jobs:
           path: infra
       - name: Variables
         id: vars
-        if: ${{ inputs.tagged-image != '' }}
-        run: |
-          echo "::set-output name=image::$(echo '${{ inputs.tagged-image}}' | cut -d ':' -f1)"
-          echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)"
-      - name: Variables
-        id: vars
-        if: ${{ inputs.tagged-image == '' }}
         run: |
           echo "::set-output name=image::${{inputs.image}}"
           echo "::set-output name=image-tag::${{inputs.image-tag}}""
+
+          if [ "${{inputs.image}}" == "" ]; then 
+            echo "::set-output name=image::$(echo '${{ inputs.tagged-image}}' | cut -d ':' -f1)"
+            echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)"
+          fi
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
         with:
