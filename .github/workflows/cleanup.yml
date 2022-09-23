@@ -5,6 +5,7 @@ on:
         type: boolean
         default: false
         description: Removes any artifacts generated during this workflow
+  push:
 
 env:
   GITHUB_TOKEN: ${{ github.token }}
@@ -12,9 +13,16 @@ env:
 jobs:
   cleanup-artifacts:
     name: Artifacts
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: ${{ inputs.cleanup-artifacts }}
     steps:
+      - run: echo "${{github.run_id}}" > artifact.txt
+      - name: Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: agent
+          path: artifact.txt
+          retention-days: 1
       - run: |
           gh api -H "Accept: application/json" /repos/${{ github.repository }}/actions/artifacts \
             | jq --raw-output '.artifacts[] | select(.workflow_run.id == ${{ github.run_id }}) | .id' \
