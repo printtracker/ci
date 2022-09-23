@@ -24,10 +24,6 @@ jobs:
           path: artifact.txt
           retention-days: 1
       - run: |
-          # gh config set prompt disabled
-          # gh api -H "Accept: application/json" /repos/${{ github.repository }}/actions/artifacts \
-             | jq --raw-output '.artifacts[] | select(.workflow_run.id == ${{ github.run_id }}) | .id' \
-             | xargs -I {} -n1 gh api -i --method DELETE -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/actions/artifacts/{}
           curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{github.token}}" https://api.github.com/repos/${{ github.repository }}/actions/artifacts \
             | jq --raw-output '.artifacts[] | select(.workflow_run.id == ${{ github.run_id }}) | .id' \
             | xargs -I {} -n1 curl -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{github.token}}" https://api.github.com/repos/${{ github.repository }}/actions/artifacts/{}
