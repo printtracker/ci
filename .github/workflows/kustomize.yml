@@ -27,7 +27,7 @@ on:
         description: A comma-separated list of environments should be deployed, for example "dev", or "dev,prod", or "prod"
 
 jobs:
-  Kustomize:
+  Kubernetes:
     # runs-on: ubuntu-latest
     runs-on: self-hosted
     concurrency: git-checkout-${{inputs.target-repo}}
