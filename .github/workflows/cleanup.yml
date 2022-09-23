@@ -14,7 +14,7 @@ jobs:
   cleanup-artifacts:
     name: Artifacts
     runs-on: ubuntu-latest
-    if: ${{ inputs.cleanup-artifacts }}
+    # if: ${{ inputs.cleanup-artifacts }}
     steps:
       - run: echo "${{github.run_id}}" > artifact.txt
       - name: Artifacts
