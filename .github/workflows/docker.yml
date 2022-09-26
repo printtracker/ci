@@ -19,6 +19,8 @@ on:
       registry:
         type: string
         default: us-west1-docker.pkg.dev
+      artifact:
+        type: string
     outputs:
       image-tag:
         description: The tag of the image that was created
@@ -63,6 +65,13 @@ jobs:
         id: registry
         run: |
           echo "::set-output name=registry::${{ (inputs.use-gar && inputs.registry) || 'ghcr.io' }}"
+      - name: Generated Artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ inputs.artifact != '' }}
+        with:
+          name: ${{ inputs.artifact }}
+          path: ${{ inputs.artifact }}
+          retention-days: 1
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
