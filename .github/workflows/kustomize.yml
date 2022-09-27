@@ -5,22 +5,28 @@ on:
         type: string
         description: The repository to perform the customizations
         default: "printtracker/ci-infra"
+        required: false
       target-branch:
         type: string
         description: The target branch to perform the customizations
         default: master
+        required: false
       target-repo-token:
         type: string
         description: A Github personal access token for the target repo
+        required: false
       image:
         type: string
         description: The container image to kustomize
+        required: false
       image-tag:
         type: string
         description: The new container image tag
+        required: false
       tagged-image:
         type: string
         description: The new image with a tag that should be customize
+        required: false
       deploy-envs:
         required: true
         type: string
@@ -29,7 +35,7 @@ on:
 jobs:
   Kubernetes:
     # runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: [self-hosted, Linux]
     concurrency: git-checkout-${{inputs.target-repo}}
     steps:
       - name: Checkout
