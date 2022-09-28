@@ -30,6 +30,7 @@ jobs:
         run: |
           export HASH=$(git rev-parse --short HEAD);
           export EXACT_TAG=$(git describe --exact-match HEAD);
+          export CLOSEST_TAG=$(git describe --always --tags | cut -d- -f1);
           export VERSION=$(git describe --always --tags);
           export REF=$(echo '${{github.head_ref || github.ref_name}}' | sed 's/\//_/')
           FIRST=$(git describe --always --tags|sed 's/^\(.\).*/\1/');
@@ -41,6 +42,7 @@ jobs:
           echo 'Hash:' $HASH
           echo 'Version:' $VERSION
           echo 'Exact tag:' $EXACT_TAG
+          echo 'Closest tag:' $CLOSEST_TAG
 
           # Reformat the ref name so that slashes are replaced with underscores.
           # This is required if we want to use the ref name as a Docker tag
@@ -48,4 +50,5 @@ jobs:
           echo "::set-output name=sha::$HASH"
           echo "::set-output name=tag::$VERSION"
           echo "::set-output name=exact-tag::$EXACT_TAG"
+          echo "::set-output name=closest-tag::$CLOSEST_TAG"
           echo "::notice title=Version::$VERSION"
