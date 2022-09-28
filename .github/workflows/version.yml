@@ -18,6 +18,7 @@ jobs:
     outputs:
       tag: ${{steps.git.outputs.tag}}
       exact-tag: ${{steps.git.outputs.exact-tag}}
+      closest-tag: ${{steps.git.outputs.closest-tag}}
       sha: ${{steps.git.outputs.sha}}
       ref: ${{steps.git.outputs.ref}}
     steps:
