@@ -48,3 +48,4 @@ jobs:
           echo "::set-output name=sha::$HASH"
           echo "::set-output name=tag::$VERSION"
           echo "::set-output name=exact-tag::$EXACT_TAG"
+          echo "::notice title=Version::$VERSION"
