@@ -92,6 +92,7 @@ jobs:
           build-args: |
             VERSION=${{needs.version.outputs.tag}}
             HASH=${{needs.version.outputs.sha}}
+            GITHUB_TOKEN=${{secrets.BOT_TOKEN}}
       - name: Output image
         id: image
         run: echo "::set-output name=image::${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.tag}}"
