@@ -49,12 +49,12 @@ jobs:
       - name: Variables
         id: vars
         run: |
-          if [ "${{inputs.image}}" == "" ]; then 
-            echo "::set-output name=image::$(echo '${{ inputs.tagged-image}}' | cut -d ':' -f1)"
-            echo "::set-output name=image-tag::$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)"
+          if [ "${{inputs.image}}" == "" ]; then
+            echo "image=$(echo '${{ inputs.tagged-image}}' | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+            echo "image-tag=$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=image::${{inputs.image}}"
-            echo "::set-output name=image-tag::${{inputs.image-tag}}"
+            echo "image=${{inputs.image}}" >> $GITHUB_OUTPUT
+            echo "image-tag=${{inputs.image-tag}}" >> $GITHUB_OUTPUT
           fi
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
