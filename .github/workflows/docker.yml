@@ -93,7 +93,7 @@ jobs:
             VERSION=${{needs.version.outputs.tag}}
             HASH=${{needs.version.outputs.sha}}
             GITHUB_TOKEN=${{secrets.BOT_TOKEN}}
-            DD_GIT_REPOSITORY_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+            DD_GIT_REPOSITORY_URL=github.com/$GITHUB_REPOSITORY
             DD_GIT_COMMIT_SHA=$GITHUB_SHA
       - name: Output image
         id: image
