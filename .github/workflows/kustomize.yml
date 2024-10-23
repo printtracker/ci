@@ -34,8 +34,8 @@ on:
 
 jobs:
   Kubernetes:
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, Linux]
     concurrency: git-checkout-${{inputs.target-repo}}
     steps:
       - name: Checkout
