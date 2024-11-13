@@ -22,6 +22,9 @@ jobs:
       sha: ${{steps.git.outputs.sha}}
       ref: ${{steps.git.outputs.ref}}
     steps:
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
