@@ -33,6 +33,7 @@ jobs:
   version:
     name: Version
     uses: printtracker/ci/.github/workflows/version.yml@master
+    secrets: inherit
   containerize:
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, docker, Linux]
