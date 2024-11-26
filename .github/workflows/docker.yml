@@ -35,20 +35,20 @@ jobs:
     uses: printtracker/ci/.github/workflows/version.yml@master
     secrets: inherit
   containerize:
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, docker, Linux]
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, docker, Linux]
     name: Containerize
     needs: version
     outputs:
       image: ${{ steps.image.outputs.image }}
     steps:
       - run: git config --global url."https://ptkrbot:${{secrets.BOT_TOKEN}}@github.com".insteadOf "https://github.com"
-      - uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
+      # - uses: webfactory/ssh-agent@v0.9.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
           
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
