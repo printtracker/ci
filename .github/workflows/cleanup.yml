@@ -18,7 +18,7 @@ jobs:
     steps:
       - run: echo "${{github.run_id}}" > artifact.txt
       - name: Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: agent
           path: artifact.txt
