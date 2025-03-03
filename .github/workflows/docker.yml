@@ -35,7 +35,7 @@ jobs:
     uses: printtracker/ci/.github/workflows/version.yml@master
     secrets: inherit
   containerize:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     # runs-on: [self-hosted, docker, Linux]
     name: Containerize
     needs: version
