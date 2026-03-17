@@ -4,25 +4,37 @@ on:
       target-branch:
         type: string
         required: true
-        description: Cherry-pick into this branch
       commit-sha:
         type: string
         required: true
-        description: The commit SHA to cherry-pick
+      pr-number:
+        type: string
+        required: true
 
 jobs:
-  cherry-pick:
+  cherry-pick-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cherry-pick into ${{ inputs.target-branch }}
+      - name: Cherry-pick into temp branch and open PR
         run: |
+          TEMP_BRANCH="cherry-pick/${{ inputs.pr-number }}-into-${{ inputs.target-branch }}"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git checkout ${{ inputs.target-branch }}
+          git checkout -b $TEMP_BRANCH
           git cherry-pick ${{ inputs.commit-sha }}
-          git push origin ${{ inputs.target-branch }}
+          git push origin $TEMP_BRANCH
+
+          gh pr create \
+            --title "Cherry-pick #${{ inputs.pr-number }} into ${{ inputs.target-branch }}" \
+            --body "Automated cherry-pick of #${{ inputs.pr-number }} into \`${{ inputs.target-branch }}\`." \
+            --base ${{ inputs.target-branch }} \
+            --head $TEMP_BRANCH
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
