@@ -4,7 +4,7 @@ on:
       target-repo:
         type: string
         description: The repository containing Helm values files
-        default: "printtracker/internal"
+        default: "printtracker/ci-infra"
         required: false
       target-branch:
         type: string
