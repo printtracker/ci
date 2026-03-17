@@ -1,0 +1,114 @@
+# your-org/.github/.github/workflows/sync-envs.yml
+on:
+  workflow_call:
+    inputs:
+      commit-sha:
+        type: string
+        required: true
+      pr-number:
+        type: string
+        required: true
+      labels:
+        type: string
+        required: true
+      source-branch:
+        type: string
+        required: false
+        default: master
+      cherry-pick-prefixes:
+        type: string
+        required: false
+        description: JSON array of label prefixes to cherry-pick. Defaults to org variable CHERRY_PICK_PREFIXES.
+      rebase-prefixes:
+        type: string
+        required: false
+        description: JSON array of label prefixes to rebase. Defaults to org variable REBASE_PREFIXES.
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      cherry-pick-matrix: ${{ steps.parse.outputs.cherry-pick }}
+      rebase-matrix: ${{ steps.parse.outputs.rebase }}
+    steps:
+      - name: Parse env labels into matrices
+        id: parse
+        run: |
+          LABELS='${{ inputs.labels }}'
+          CHERRY_PICK_PREFIXES='${{ inputs.cherry-pick-prefixes || vars.CHERRY_PICK_PREFIXES }}'
+          REBASE_PREFIXES='${{ inputs.rebase-prefixes || vars.REBASE_PREFIXES }}'
+
+          CHERRY_PICK=$(echo "$LABELS" | jq -c --argjson prefixes "$CHERRY_PICK_PREFIXES" '
+            [.[] | select(.name as $n | $prefixes[] | $n | startswith(.)) | .name | ltrimstr("env:")]
+          ')
+          REBASE=$(echo "$LABELS" | jq -c --argjson prefixes "$REBASE_PREFIXES" '
+            [.[] | select(.name as $n | $prefixes[] | $n | startswith(.)) | .name | ltrimstr("env:")]
+          ')
+
+          echo "cherry-pick=$CHERRY_PICK" >> $GITHUB_OUTPUT
+          echo "rebase=$REBASE" >> $GITHUB_OUTPUT
+  cherry-pick:
+    needs: prepare
+    if: needs.prepare.outputs.cherry-pick-matrix != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ${{ fromJson(needs.prepare.outputs.cherry-pick-matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cherry-pick into temp branch and open PR
+        run: |
+          TEMP_BRANCH="cherry-pick/${{ inputs.pr-number }}-into-${{ matrix.target }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout ${{ matrix.target }}
+          git checkout -b $TEMP_BRANCH
+          git cherry-pick ${{ inputs.commit-sha }}
+          git push origin $TEMP_BRANCH
+
+          gh pr create \
+            --title "Cherry-pick #${{ inputs.pr-number }} into ${{ matrix.target }}" \
+            --body "Automated cherry-pick of #${{ inputs.pr-number }} into \`${{ matrix.target }}\`." \
+            --base ${{ matrix.target }} \
+            --head $TEMP_BRANCH
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rebase:
+    needs: prepare
+    if: needs.prepare.outputs.rebase-matrix != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ${{ fromJson(needs.prepare.outputs.rebase-matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rebase target branch onto source and open PR
+        run: |
+          TEMP_BRANCH="rebase/${{ inputs.pr-number }}-into-${{ matrix.target }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout ${{ matrix.target }}
+          git checkout -b $TEMP_BRANCH
+          git rebase origin/${{ inputs.source-branch }}
+          git push origin $TEMP_BRANCH --force-with-lease
+
+          gh pr create \
+            --title "Rebase ${{ matrix.target }} onto ${{ inputs.source-branch }} (#${{ inputs.pr-number }})" \
+            --body "Automated rebase of \`${{ matrix.target }}\` onto \`${{ inputs.source-branch }}\` triggered by #${{ inputs.pr-number }}." \
+            --base ${{ matrix.target }} \
+            --head $TEMP_BRANCH
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
