@@ -14,14 +14,6 @@ on:
         type: string
         required: false
         default: master
-      cherry-pick-prefixes:
-        type: string
-        required: false
-        description: JSON array of label prefixes to cherry-pick. Defaults to org variable CHERRY_PICK_PREFIXES.
-      rebase-prefixes:
-        type: string
-        required: false
-        description: JSON array of label prefixes to rebase. Defaults to org variable REBASE_PREFIXES.
 
 jobs:
   prepare:
@@ -34,8 +26,8 @@ jobs:
         id: parse
         run: |
           LABELS='${{ inputs.labels }}'
-          CHERRY_PICK_PREFIXES='${{ inputs.cherry-pick-prefixes || vars.CHERRY_PICK_PREFIXES }}'
-          REBASE_PREFIXES='${{ inputs.rebase-prefixes || vars.REBASE_PREFIXES }}'
+          CHERRY_PICK_PREFIXES='${{ vars.CHERRY_PICK_PREFIXES }}'
+          REBASE_PREFIXES='${{ vars.REBASE_PREFIXES }}'
 
           CHERRY_PICK=$(echo "$LABELS" | jq -c --argjson prefixes "$CHERRY_PICK_PREFIXES" '
             [.[] | select(.name as $n | $prefixes[] | $n | startswith(.)) | .name | ltrimstr("env:")]
