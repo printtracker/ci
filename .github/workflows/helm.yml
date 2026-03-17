@@ -57,6 +57,7 @@ jobs:
         with:
           repository: ${{ inputs.target-repo }}
           token: ${{ secrets.BOT_TOKEN }}
+          ref: ${{ inputs.target-branch }}
           path: infra
 
       - name: Variables
