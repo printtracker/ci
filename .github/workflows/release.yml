@@ -30,10 +30,10 @@ jobs:
           REBASE_PREFIXES='${{ vars.REBASE_PREFIXES }}'
 
           CHERRY_PICK=$(echo "$LABELS" | jq -c --argjson prefixes "$CHERRY_PICK_PREFIXES" '
-            [.[] | select(any($prefixes[]; . as $p | .name | startswith($p))) | .name | ltrimstr("env:")]
+            [.[] | . as $item | select($prefixes | map($item.name | startswith(.)) | any) | $item.name | ltrimstr("env:")]
           ')
           REBASE=$(echo "$LABELS" | jq -c --argjson prefixes "$REBASE_PREFIXES" '
-            [.[] | select(any($prefixes[]; . as $p | .name | startswith($p))) | .name | ltrimstr("env:")]
+            [.[] | . as $item | select($prefixes | map($item.name | startswith(.)) | any) | $item.name | ltrimstr("env:")]
           ')
 
           echo "cherry-pick=$CHERRY_PICK" >> $GITHUB_OUTPUT
