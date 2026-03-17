@@ -1,0 +1,132 @@
+on:
+  workflow_call:
+    inputs:
+      target-repo:
+        type: string
+        description: The repository containing Helm values files
+        default: "printtracker/internal"
+        required: false
+      target-branch:
+        type: string
+        description: The target branch to commit to
+        default: master
+        required: false
+      target-repo-token:
+        type: string
+        description: A GitHub personal access token for the target repo
+        required: false
+      image:
+        type: string
+        description: The container image name (without tag)
+        required: false
+      image-tag:
+        type: string
+        description: The new container image tag
+        required: false
+      tagged-image:
+        type: string
+        description: The full image:tag string; parsed when image/image-tag are not provided
+        required: false
+      values-path:
+        type: string
+        description: Dotted yq path to the image tag field, e.g. "dcaManager.image.tag"
+        required: true
+      deploy-root:
+        type: string
+        description: Path prefix within the infra repo containing cluster directories, e.g. "kube/deploy/foobar"
+        required: true
+      deploy-targets:
+        type: string
+        description: >
+          JSON array of cluster/env objects to update, e.g.
+          '[{"cluster":"foobar-0","env":"app-prod"}]'
+        required: true
+
+jobs:
+  Kubernetes:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: helm-gitops-${{ inputs.target-repo }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.target-repo }}
+          token: ${{ secrets.BOT_TOKEN }}
+          path: infra
+
+      - name: Variables
+        id: vars
+        run: |
+          if [ -z "${{ inputs.image }}" ]; then
+            echo "image=$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+            echo "image-tag=$(echo '${{ inputs.tagged-image }}' | cut -d ':' -f2)" >> $GITHUB_OUTPUT
+          else
+            echo "image=${{ inputs.image }}" >> $GITHUB_OUTPUT
+            echo "image-tag=${{ inputs.image-tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install yq
+        run: |
+          wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+
+      - name: Configure git
+        run: |
+          cd infra
+          git config user.email "bot@ptkr.io"
+          git config user.name "Print Tracker Bot"
+
+      - name: Update Helm values
+        run: |
+          set -e
+          targets='${{ inputs.deploy-targets }}'
+          values_path='${{ inputs.values-path }}'
+          image_tag='${{ steps.vars.outputs.image-tag }}'
+          deploy_root='${{ inputs.deploy-root }}'
+
+          echo "$targets" | jq -c '.[]' | while read -r target; do
+            cluster=$(echo "$target" | jq -r '.cluster')
+            env=$(echo "$target" | jq -r '.env')
+            values_file="infra/${deploy_root}/${cluster}/${env}/values.yaml"
+
+            if [ ! -f "$values_file" ]; then
+              echo "ERROR: Values file not found: $values_file"
+              exit 1
+            fi
+
+            echo "Updating ${values_file}: .${values_path} = \"${image_tag}\""
+            yq -i ".${values_path} = \"${image_tag}\"" "$values_file"
+          done
+
+      - name: Commit and Push
+        run: |
+          set -e
+          cd infra
+          git add '${{ inputs.deploy-root }}/'
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit — image tag is already up to date."
+            exit 0
+          fi
+
+          git commit -m "helm: set ${{ inputs.values-path }} to ${{ steps.vars.outputs.image-tag }}"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Push attempt ${attempt}..."
+            git fetch origin ${{ inputs.target-branch }}
+            git rebase origin/${{ inputs.target-branch }}
+            if git push origin ${{ inputs.target-branch }}; then
+              echo "Push succeeded on attempt ${attempt}."
+              exit 0
+            fi
+            sleep $((RANDOM % 10 + 5))
+          done
+
+          echo "ERROR: All push attempts failed."
+          exit 1
