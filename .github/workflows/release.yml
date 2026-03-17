@@ -14,59 +14,52 @@ on:
         type: string
         required: false
         default: master
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      cherry-pick-matrix: ${{ steps.parse.outputs.cherry-pick }}
+      merge-matrix: ${{ steps.parse.outputs.merge }}
       rebase-matrix: ${{ steps.parse.outputs.rebase }}
     steps:
       - name: Parse env labels into matrices
         id: parse
         run: |
           LABELS='${{ inputs.labels }}'
-          CHERRY_PICK_PREFIXES='${{ vars.CHERRY_PICK_PREFIXES }}'
+          MERGE_PREFIXES='${{ vars.MERGE_PREFIXES }}'
           REBASE_PREFIXES='${{ vars.REBASE_PREFIXES }}'
-
-          CHERRY_PICK=$(echo "$LABELS" | jq -c --argjson prefixes "$CHERRY_PICK_PREFIXES" '
+          MERGE=$(echo "$LABELS" | jq -c --argjson prefixes "$MERGE_PREFIXES" '
             [.[] | select(.name as $n | $prefixes | map(. as $p | $n | startswith($p)) | any) | .name | ltrimstr("env:")]
           ')
           REBASE=$(echo "$LABELS" | jq -c --argjson prefixes "$REBASE_PREFIXES" '
             [.[] | select(.name as $n | $prefixes | map(. as $p | $n | startswith($p)) | any) | .name | ltrimstr("env:")]
           ')
-
-          echo "cherry-pick=$CHERRY_PICK" >> $GITHUB_OUTPUT
+          echo "merge=$MERGE" >> $GITHUB_OUTPUT
           echo "rebase=$REBASE" >> $GITHUB_OUTPUT
 
-  cherry-pick:
+  merge:
     needs: prepare
-    if: needs.prepare.outputs.cherry-pick-matrix != '[]'
+    if: needs.prepare.outputs.merge-matrix != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: ${{ fromJson(needs.prepare.outputs.cherry-pick-matrix) }}
+        target: ${{ fromJson(needs.prepare.outputs.merge-matrix) }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cherry-pick into temp branch and open PR
+      - name: Merge single commit into temp branch and open PR
         run: |
-          TEMP_BRANCH="cherry-pick/${{ inputs.pr-number }}-into-${{ matrix.target }}"
-
+          TEMP_BRANCH="merge/${{ inputs.pr-number }}-into-${{ matrix.target }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git checkout ${{ matrix.target }}
+          git checkout ${{ inputs.commit-sha }}
           git checkout -b $TEMP_BRANCH
-          git cherry-pick ${{ inputs.commit-sha }}
+          git merge origin/${{ matrix.target }} --no-edit
           git push origin $TEMP_BRANCH
-
           gh pr create \
-            --title "Cherry-pick #${{ inputs.pr-number }} into ${{ matrix.target }}" \
-            --body "Automated cherry-pick of #${{ inputs.pr-number }} into \`${{ matrix.target }}\`." \
+            --title "Merge #${{ inputs.pr-number }} into ${{ matrix.target }}" \
+            --body "Automated merge of #${{ inputs.pr-number }} into \`${{ matrix.target }}\`." \
             --base ${{ matrix.target }} \
             --head $TEMP_BRANCH
         env:
@@ -84,22 +77,18 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Rebase target branch onto source and open PR
+      - name: Rebase target branch from source and open PR
         run: |
           TEMP_BRANCH="rebase/${{ inputs.pr-number }}-into-${{ matrix.target }}"
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git checkout ${{ matrix.target }}
           git checkout -b $TEMP_BRANCH
           git rebase origin/${{ inputs.source-branch }}
           git push origin $TEMP_BRANCH --force-with-lease
-
           gh pr create \
-            --title "Rebase ${{ matrix.target }} onto ${{ inputs.source-branch }} (#${{ inputs.pr-number }})" \
-            --body "Automated rebase of \`${{ matrix.target }}\` onto \`${{ inputs.source-branch }}\` triggered by #${{ inputs.pr-number }}." \
+            --title "Rebase ${{ matrix.target }} from ${{ inputs.source-branch }} (#${{ inputs.pr-number }})" \
+            --body "Automated rebase of \`${{ matrix.target }}\` from \`${{ inputs.source-branch }}\` triggered by #${{ inputs.pr-number }}." \
             --base ${{ matrix.target }} \
             --head $TEMP_BRANCH
         env:
