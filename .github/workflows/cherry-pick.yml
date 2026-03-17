@@ -1,0 +1,28 @@
+on:
+  workflow_call:
+    inputs:
+      target-branch:
+        type: string
+        required: true
+        description: Cherry-pick into this branch
+      commit-sha:
+        type: string
+        required: true
+        description: The commit SHA to cherry-pick
+
+jobs:
+  cherry-pick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cherry-pick into ${{ inputs.target-branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout ${{ inputs.target-branch }}
+          git cherry-pick ${{ inputs.commit-sha }}
+          git push origin ${{ inputs.target-branch }}
