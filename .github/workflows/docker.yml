@@ -48,7 +48,6 @@ jobs:
         with:
           app-id: ${{ vars.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          owner: printtracker
       - run: git config --global url."https://x-access-token:${{steps.app-token.outputs.token}}@github.com".insteadOf "https://github.com"
       # - uses: webfactory/ssh-agent@v0.9.0
       #   with:
