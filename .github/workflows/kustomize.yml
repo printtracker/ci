@@ -38,13 +38,20 @@ jobs:
     # runs-on: [self-hosted, Linux]
     concurrency: git-checkout-${{inputs.target-repo}}
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: printtracker
       - name: Checkout
         uses: actions/checkout@v3
       - name: Checkout
         uses: actions/checkout@v3
         with:
           repository: ${{inputs.target-repo}}
-          token: ${{secrets.BOT_TOKEN}}
+          token: ${{steps.app-token.outputs.token}}
           path: infra
       - name: Variables
         id: vars
