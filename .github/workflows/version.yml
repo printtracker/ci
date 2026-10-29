@@ -1,5 +1,12 @@
 on:
   workflow_call:
+    inputs:
+      version:
+        description: Explicit image version; defaults to the Git-derived version
+        type: string
+      ref:
+        description: Git ref to check out; defaults to the workflow ref
+        type: string
     outputs:
       tag:
         description: The git tag
@@ -29,17 +36,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.ref }}
       - name: Set tag and hash
         id: git
+        env:
+          VERSION_OVERRIDE: ${{ inputs.version }}
+          REF_NAME: ${{ inputs.ref || github.head_ref || github.ref_name }}
         run: |
           export HASH=$(git rev-parse --short HEAD);
           export EXACT_TAG=$(git describe --exact-match HEAD);
           export CLOSEST_TAG=$(git describe --always --tags | cut -d- -f1);
-          export VERSION=$(git describe --always --tags);
-          export REF=$(echo '${{github.head_ref || github.ref_name}}' | sed 's/\//_/')
-          FIRST=$(git describe --always --tags|sed 's/^\(.\).*/\1/');
-          if [ "$FIRST" == "v" ]; then 
-            VERSION=$(git describe --always --tags|sed 's/^.\{1\}//');
+          export REF=$(printf '%s' "$REF_NAME" | sed 's/\//_/')
+          export VERSION="$VERSION_OVERRIDE"
+          if [ -n "$VERSION" ]; then
+            if [[ ! "$VERSION" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+              echo 'invalid version override: expected a Docker image tag' >&2
+              exit 1
+            fi
+          else
+            VERSION=$(git describe --always --tags)
+            VERSION=${VERSION#v}
           fi
 
           echo 'Ref:' $REF

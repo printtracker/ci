@@ -6,6 +6,12 @@ on:
         default: .
       dockerfile:
         type: string
+      version:
+        description: Explicit image version; defaults to the Git-derived version
+        type: string
+      ref:
+        description: Git ref to build; defaults to the workflow ref
+        type: string
       latest:
         type: boolean
         default: true
@@ -34,6 +40,9 @@ jobs:
     name: Version
     uses: printtracker/ci/.github/workflows/version.yml@master
     secrets: inherit
+    with:
+      version: ${{ inputs.version }}
+      ref: ${{ inputs.ref }}
   containerize:
     runs-on: ubuntu-latest-m
     # runs-on: [self-hosted, docker, Linux]
@@ -55,7 +64,10 @@ jobs:
       #     ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
           
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -107,7 +119,9 @@ jobs:
             HASH=${{needs.version.outputs.sha}}
             GITHUB_TOKEN=${{steps.app-token.outputs.token}}
             DD_GIT_REPOSITORY_URL=github.com/${{ github.repository }}
-            DD_GIT_COMMIT_SHA=${{ github.sha }}
+            DD_GIT_COMMIT_SHA=${{ steps.checkout.outputs.commit }}
       - name: Output image
         id: image
-        run: echo "image=${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.tag}}" >> $GITHUB_OUTPUT
+        env:
+          IMAGE: ${{steps.registry.outputs.registry}}/${{inputs.image}}:${{needs.version.outputs.tag}}
+        run: echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
