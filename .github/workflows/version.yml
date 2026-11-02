@@ -41,7 +41,7 @@ jobs:
         id: git
         env:
           VERSION_OVERRIDE: ${{ inputs.version }}
-          REF_NAME: ${{ inputs.ref || github.head_ref || github.ref_name }}
+          REF_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
           export HASH=$(git rev-parse --short HEAD);
           export EXACT_TAG=$(git describe --exact-match HEAD);
